@@ -16,13 +16,13 @@
     };
   };
 
-  dconf.settings = {
-    "org/gnome/settings-daemon/plugins/power" = {
-      sleep-inactive-ac-type = "nothing";
-    };
+  programs.alacritty.enable = true;
 
-    "org/gnome/desktop/peripherals/mouse" = {
-      accel-profile = "flat";
-    };
-  };
+  programs.swaylock.enable = true;
+
+  programs.fuzzel.enable = true;
+
+  services.mako.enable = true;
+
+  xdg.configFile."niri/config.kdl".source = ./niri/config.kdl;
 }
