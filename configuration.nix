@@ -14,30 +14,24 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "nixos";
 
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+
+    plugins = [ pkgs.networkmanager-openvpn ];
+  };
+
+  networking.firewall.checkReversePath = "loose";
 
   time.timeZone = "Europe/Berlin";
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   # console = {
   #   font = "Lat2-Terminus16";
   #   keyMap = "us";
   #   useXkbConfig = true; # use xkb.options in tty.
   # };
-
-  # Enable the X11 windowing system.
-  # services.xserver.enable = true;
-
-  # Configure keymap in X11
-  # services.xserver.xkb.layout = "us";
-  # services.xserver.xkb.options = "eurosign:e,caps:escape";
 
   # Enable CUPS to print documents.
   # services.printing.enable = true;
@@ -56,27 +50,31 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.lucoder = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
   };
-
-  programs.firefox.enable = true;
-
-  programs.vscode.enable = true;
 
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
 
+  programs.firefox.enable = true;
+
+  programs.vscode.enable = true;
+
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
     wget
     google-chrome
     git
     discord
     telegram-desktop
+    wireguard-tools
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -86,8 +84,6 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-
-  # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
@@ -102,9 +98,6 @@
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
   # system.copySystemConfiguration = true;
-
-  # services.displayManager.gdm.enable = true;
-  # services.desktopManager.gnome.enable = true;
 
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia.open = true;

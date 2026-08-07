@@ -1,54 +1,5 @@
 { config, pkgs, ... }:
 
-let
-  monitorOffDelay = 5;
-
-  lockAndBlank = pkgs.writeShellApplication {
-    name = "niri-lock-and-blank";
-
-    runtimeInputs = with pkgs; [
-      coreutils
-      niri
-      swayidle
-      swaylock
-      util-linux
-    ];
-
-    text = ''
-      : "''${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR is not set}"
-
-      # Prevent multiple concurrent lock wrappers.
-      exec 9>"$XDG_RUNTIME_DIR/niri-lock-and-blank.lock"
-      flock -n 9 || exit 0
-
-      idle_pid=""
-
-      cleanup() {
-        if [[ -n "$idle_pid" ]]; then
-          kill "$idle_pid" 2>/dev/null || true
-          wait "$idle_pid" 2>/dev/null || true
-        fi
-
-        # Ensure the displays are enabled after unlocking or on failure.
-        niri msg action power-on-monitors >/dev/null 2>&1 || true
-      }
-
-      trap cleanup EXIT
-
-      # This swayidle instance exists only while the screen is locked.
-      swayidle -w \
-        timeout ${toString monitorOffDelay} \
-          'niri msg action power-off-monitors' \
-        resume \
-          'niri msg action power-on-monitors' &
-
-      idle_pid=$!
-
-      # Keep swaylock in the foreground. It exits after successful unlock.
-      swaylock --show-failed-attempts
-    '';
-  };
-in
 {
   home.username = "lucoder";
   home.homeDirectory = "/home/lucoder";
@@ -56,7 +7,8 @@ in
   home.stateVersion = "26.05";
 
   home.packages = [
-    lockAndBlank
+    (pkgs.callPackage ./niri/lock-and-blank.nix { })
+    pkgs.networkmanagerapplet
   ];
 
   programs.home-manager.enable = true;
@@ -77,6 +29,9 @@ in
 
   services.mako.enable = true;
 
+  services.network-manager-applet.enable = true;
+  xsession.preferStatusNotifierItems = true;
+
   xdg.configFile."niri/config.kdl".source = ./niri/config.kdl;
 
   xdg.dataFile = {
@@ -92,5 +47,42 @@ in
           "switches/@3/reset": 0
       '';
     };
+  };
+
+  programs.waybar = {
+    enable = true;
+    settings.mainBar = {
+      layer = "top";
+      position = "top";
+      height = 30;
+      modules-left = [ "niri/workspaces" ];
+      modules-center = [ "niri/window" ];
+      modules-right = [
+        "tray"
+        "clock"
+      ];
+      "niri/workspaces" = {
+        format = "{id}";
+        on-click = "activate";
+      };
+      "niri/window" = {
+        format = "{title}";
+      };
+      tray = {
+        spacing = 8;
+        icon-size = 18;
+      };
+      clock = {
+        format = "{:%H:%M}";
+        tooltip-format = "{:%a, %b %d, %Y}";
+      };
+    };
+    style = ''
+      * { border: none; border-radius: 0; font-family: sans-serif; font-size: 13px; }
+      window#waybar { background: rgba(20, 20, 20, 0.85); color: #e0e0e0; }
+      #workspaces button.active { background: #3a3a3a; }
+      #tray { padding: 0 8px; }
+      #clock { padding: 0 10px; }
+    '';
   };
 }
