@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 
@@ -19,10 +18,8 @@
 
   networking.networkmanager = {
     enable = true;
-
     plugins = [ pkgs.networkmanager-openvpn ];
   };
-
   networking.firewall.checkReversePath = "loose";
 
   time.timeZone = "Europe/Berlin";
@@ -68,6 +65,19 @@
   # Newer kernel versions may need
   virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.greetd.enableGnomeKeyring = true;
+
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      # (pkgs.runCommand "steamrun-lib" {} "mkdir $out; ln -s ${pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")
+      stdenv.cc.cc.lib   # libstdc++, libgcc_s
+      zlib
+      openssl
+    ];
+  };
+
   programs.firefox.enable = true;
 
   programs.vscode.enable = true;
@@ -81,8 +91,7 @@
     telegram-desktop
     wireguard-tools
     wl-clipboard
-
-    inputs.claude-desktop.packages.x86_64-linux.default
+    gcr
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
