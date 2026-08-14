@@ -4,6 +4,8 @@
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    claude-desktop.url = "github:patrickjaja/claude-desktop-extra";
   };
 
   outputs =
@@ -15,6 +17,8 @@
     }@inputs:
     {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+
         modules = [
           ./configuration.nix
           home-manager.nixosModules.home-manager
