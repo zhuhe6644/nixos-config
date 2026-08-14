@@ -1,6 +1,11 @@
 {
+  description = "lucoder's NixOS configuration";
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -10,34 +15,27 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      claude-desktop,
-      ...
-    }@inputs:
-    {
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
+    inputs@{ flake-parts, nixpkgs, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" ];
 
-        modules = [
-          ./configuration.nix
+      perSystem =
+        { pkgs, ... }:
+        {
+          formatter = pkgs.nixfmt-tree;
 
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { inherit inputs; };
-            home-manager.users.lucoder = ./home.nix;
-          }
+          packages.niri-lock-and-blank = pkgs.callPackage ./modules/niri/lock-and-blank.nix { };
+        };
 
-          claude-desktop.nixosModules.default
-          {
-            programs.claude-desktop.enable = true;
-            programs.claude-desktop.cowork.kvmUsers = [ "lucoder" ];
-          }
-        ];
+      # The system is set by `nixpkgs.hostPlatform` in the host's
+      # hardware-configuration.nix, so `nixosSystem` needs no `system` argument.
+      flake.nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit inputs;
+          username = "lucoder";
+        };
+
+        modules = [ ./hosts/nixos ];
       };
     };
 }

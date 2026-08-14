@@ -1,6 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 
 {
+  # --- NixOS ---
+
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
@@ -51,6 +53,27 @@
           "Groups/0/Items/0".Name = "keyboard-us";
           "Groups/0/Items/1".Name = "rime";
         };
+      };
+    };
+  };
+
+  # --- Home Manager ---
+
+  # Rime reads its user overrides from the data directory, so these patches
+  # cannot live in the system-level settings above.
+  home-manager.users.${username} = {
+    xdg.dataFile = {
+      "fcitx5/rime/default.custom.yaml" = {
+        text = ''
+          patch:
+            __include: rime_ice_suggestion:/
+        '';
+      };
+      "fcitx5/rime/rime_ice.custom.yaml" = {
+        text = ''
+          patch:
+            "switches/@3/reset": 0
+        '';
       };
     };
   };
