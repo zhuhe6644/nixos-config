@@ -13,6 +13,10 @@
   environment.systemPackages = with pkgs; [
     google-chrome
     git
+
+    python3
+    uv
+
     discord
     telegram-desktop
     nautilus
