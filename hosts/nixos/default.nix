@@ -11,6 +11,7 @@
     ../../modules/niri
     ../../modules/system.nix
     ../../modules/users.nix
+    ../../modules/waydroid
   ];
 
   networking.hostName = "nixos";

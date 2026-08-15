@@ -7,11 +7,6 @@
 
   programs.vscode.enable = true;
 
-  # Android apps.
-  virtualisation.waydroid.enable = true;
-  # Newer kernel versions may need
-  virtualisation.waydroid.package = pkgs.waydroid-nftables;
-
   # gvfs backs nautilus' trash, network and mount support.
   services.gvfs.enable = true;
 

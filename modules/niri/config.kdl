@@ -303,6 +303,17 @@ window-rule {
     open-floating true
 }
 
+// Waydroid's Android compositor requests xdg_toplevel maximize when it creates
+// the full-UI window, and niri honors that as maximize-window-to-edges: the
+// window covers the screen and column-width binds have no visible effect.
+// Declining it lets Waydroid tile like anything else, at the default half-width
+// column. app-id is "Waydroid" for `waydroid show-full-ui`; individual apps in
+// multi-window mode use "waydroid.<package>".
+window-rule {
+    match app-id=r#"^Waydroid$"#
+    open-maximized-to-edges false
+}
+
 // Example: block out two password managers from screen capture.
 // (This example rule is commented out with a "/-" in front.)
 /-window-rule {
