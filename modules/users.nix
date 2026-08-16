@@ -3,8 +3,6 @@
 {
   imports = [ inputs.home-manager.nixosModules.home-manager ];
 
-  # --- NixOS ---
-
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [
@@ -13,11 +11,8 @@
     ];
   };
 
-  # --- Home Manager ---
-
-  # Run Home Manager as a NixOS module, so every feature module can define its
-  # user-level configuration alongside its system-level configuration via
-  # `home-manager.users.${username}`.
+  # Home Manager as a NixOS module, so each feature module can define its
+  # user-level config next to its system-level config.
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;

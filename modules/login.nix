@@ -11,10 +11,6 @@
     useTextGreeter = true;
   };
 
-  # Unlock the login keyring with the password entered at the greeter above.
+  # Secret Service backend for apps that store credentials.
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.greetd.enableGnomeKeyring = true;
-
-  # Provides the prompter the keyring uses to ask for secrets.
-  environment.systemPackages = [ pkgs.gcr ];
 }

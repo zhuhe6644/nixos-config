@@ -7,7 +7,7 @@
   util-linux,
 
   # Seconds before the monitors power off after locking.
-  monitorOffDelay ? 5,
+  monitorOffDelay ? 10,
 }:
 
 writeShellApplication {

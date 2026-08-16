@@ -23,19 +23,16 @@
         { pkgs, ... }:
         {
           formatter = pkgs.nixfmt-tree;
-
-          packages.niri-lock-and-blank = pkgs.callPackage ./modules/niri/lock-and-blank.nix { };
         };
 
-      # The system is set by `nixpkgs.hostPlatform` in the host's
-      # hardware-configuration.nix, so `nixosSystem` needs no `system` argument.
-      flake.nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      # `nixpkgs.hostPlatform` in hardware-configuration.nix sets the system.
+      flake.nixosConfigurations.workstation = nixpkgs.lib.nixosSystem {
         specialArgs = {
           inherit inputs;
           username = "lucoder";
         };
 
-        modules = [ ./hosts/nixos ];
+        modules = [ ./hosts/workstation ];
       };
     };
 }

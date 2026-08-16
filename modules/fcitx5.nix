@@ -1,8 +1,6 @@
 { pkgs, username, ... }:
 
 {
-  # --- NixOS ---
-
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
@@ -57,10 +55,7 @@
     };
   };
 
-  # --- Home Manager ---
-
-  # Rime reads its user overrides from the data directory, so these patches
-  # cannot live in the system-level settings above.
+  # Rime reads its overrides from the data directory, not the settings above.
   home-manager.users.${username} = {
     xdg.dataFile = {
       "fcitx5/rime/default.custom.yaml" = {

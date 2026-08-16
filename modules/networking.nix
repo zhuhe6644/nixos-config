@@ -1,8 +1,6 @@
 { pkgs, username, ... }:
 
 {
-  # --- NixOS ---
-
   networking.networkmanager = {
     enable = true;
     plugins = [ pkgs.networkmanager-openvpn ];
@@ -13,8 +11,6 @@
 
   environment.systemPackages = [ pkgs.wireguard-tools ];
 
-  # --- Home Manager ---
-
   home-manager.users.${username} = {
     services.network-manager-applet.enable = true;
 
@@ -22,10 +18,8 @@
     # which is what the waybar tray understands.
     xsession.preferStatusNotifierItems = true;
 
-    # The applet module only wires up a systemd user service pointing at an
-    # absolute store path; it puts nothing on PATH. Installing the package as
-    # well is what makes `nm-connection-editor` launchable, both from a shell
-    # and from the fuzzel entry, whose Exec is a bare command name.
+    # The applet module puts nothing on PATH; installing the package is what
+    # makes `nm-connection-editor` launchable from a shell or from fuzzel.
     home.packages = [ pkgs.networkmanagerapplet ];
   };
 }

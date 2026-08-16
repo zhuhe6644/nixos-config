@@ -1,22 +1,22 @@
-{ pkgs, username, ... }:
+{
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
   imports = [ ./waybar.nix ];
 
-  # --- NixOS ---
-
   programs.niri.enable = true;
 
   # Make Electron/Chromium apps run natively on Wayland.
-  environment.variables.NIXOS_OZONE_WL = "1";
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   environment.systemPackages = with pkgs; [
     xwayland-satellite # X11 clients under niri
-    swaybg # wallpaper
     wl-clipboard
   ];
-
-  # --- Home Manager ---
 
   home-manager.users.${username} = {
     xdg.configFile."niri/config.kdl".source = ./config.kdl;
@@ -27,9 +27,22 @@
     # Notification daemon.
     services.mako.enable = true;
 
-    # Screen lock, bound to Super+Alt+L in config.kdl. The wrapper locks with
-    # swaylock and powers the monitors off while the session stays locked.
+    # Screen lock, bound to Super+Alt+L in config.kdl. Blanks the monitors while locked.
     programs.swaylock.enable = true;
     home.packages = [ (pkgs.callPackage ./lock-and-blank.nix { }) ];
+
+    # Wallpaper. Bound to niri.service.
+    systemd.user.services.swaybg = {
+      Unit = {
+        Description = "Wallpaper";
+        PartOf = [ "niri.service" ];
+        After = [ "niri.service" ];
+      };
+      Service = {
+        ExecStart = "${lib.getExe pkgs.swaybg} --mode fill --image ${./earth.jpg}";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "niri.service" ];
+    };
   };
 }

@@ -6,6 +6,13 @@
     "flakes"
   ];
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
+  nix.optimise.automatic = true;
+
   nixpkgs.config.allowUnfree = true;
 
   time.timeZone = "Europe/Berlin";
@@ -21,6 +28,7 @@
   programs.nix-ld = {
     enable = true;
     libraries = with pkgs; [
+      # steam-run.fhsenv.args.multiPkgs pkgs
       # (pkgs.runCommand "steamrun-lib" {} "mkdir $out; ln -s ${pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")
       stdenv.cc.cc.lib # libstdc++, libgcc_s
       zlib

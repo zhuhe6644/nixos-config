@@ -1,8 +1,6 @@
 { pkgs, username, ... }:
 
 {
-  # --- NixOS ---
-
   programs.firefox.enable = true;
 
   programs.vscode.enable = true;
@@ -21,8 +19,6 @@
     telegram-desktop
     nautilus
   ];
-
-  # --- Home Manager ---
 
   home-manager.users.${username} = {
     programs.alacritty.enable = true;
