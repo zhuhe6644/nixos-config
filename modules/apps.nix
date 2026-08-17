@@ -21,7 +21,7 @@ in
     python3
     uv
 
-    (useSecretService discord)
+    vesktop
     telegram-desktop
     nautilus
   ];
