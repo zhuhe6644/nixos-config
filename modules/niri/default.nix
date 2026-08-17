@@ -31,6 +31,19 @@
     programs.swaylock.enable = true;
     home.packages = [ (pkgs.callPackage ./lock-and-blank.nix { }) ];
 
+    # Overwrite this shared dconf key again on every niri start.
+    systemd.user.services.dark-color-scheme = {
+      Unit = {
+        Description = "Prefer a dark colour scheme";
+        After = [ "niri.service" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe pkgs.dconf} write /org/gnome/desktop/interface/color-scheme \"'prefer-dark'\"";
+      };
+      Install.WantedBy = [ "niri.service" ];
+    };
+
     # Wallpaper. Bound to niri.service.
     systemd.user.services.swaybg = {
       Unit = {
