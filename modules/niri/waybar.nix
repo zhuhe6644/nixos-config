@@ -5,6 +5,7 @@
   home-manager.users.${username} = {
     programs.waybar = {
       enable = true;
+
       settings.mainBar = {
         layer = "top";
         position = "top";
@@ -31,12 +32,30 @@
           tooltip-format = "{:%a, %b %d, %Y}";
         };
       };
+
       style = ''
-        * { border: none; border-radius: 0; font-family: sans-serif; font-size: 13px; }
-        window#waybar { background: rgba(20, 20, 20, 0.85); color: #e0e0e0; }
-        #workspaces button.active { background: #3a3a3a; }
-        #tray { padding: 0 8px; }
-        #clock { padding: 0 10px; }
+        * {
+          border: none;
+          border-radius: 0;
+          font-family: sans-serif;
+          font-size: 13px;
+        }
+        window#waybar {
+          background-color: rgba(0, 0, 0, 0.75);
+        }
+        #workspaces button {
+          padding: 0 5px;
+          background: transparent;
+        }
+        #workspaces button.active {
+          background-color: #4b367c;
+        }
+        #tray {
+          padding: 0 8px;
+        }
+        #clock {
+          padding: 0 10px;
+        }
       '';
     };
   };
