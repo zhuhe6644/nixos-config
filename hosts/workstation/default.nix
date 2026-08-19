@@ -5,6 +5,7 @@
     ../../modules/apps.nix
     ../../modules/audio.nix
     ../../modules/claude-desktop.nix
+    ../../modules/credentials.nix
     ../../modules/fcitx5.nix
     ../../modules/gaming.nix
     ../../modules/login.nix

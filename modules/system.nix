@@ -36,6 +36,9 @@
     ];
   };
 
+  # Build and run aarch64 binaries under QEMU emulation.
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   environment.systemPackages = with pkgs; [
     vim
     wget

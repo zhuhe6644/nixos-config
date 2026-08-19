@@ -27,7 +27,4 @@ in
   };
 
   services.displayManager.defaultSession = "niri";
-
-  # Secret Service backend for apps that store credentials.
-  services.gnome.gnome-keyring.enable = true;
 }
