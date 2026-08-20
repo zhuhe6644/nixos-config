@@ -8,6 +8,7 @@
     ../../modules/credentials.nix
     ../../modules/fcitx5.nix
     ../../modules/gaming.nix
+    ../../modules/git.nix
     ../../modules/login.nix
     ../../modules/networking.nix
     ../../modules/niri

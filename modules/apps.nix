@@ -16,7 +16,6 @@ in
 
   environment.systemPackages = with pkgs; [
     (useSecretService google-chrome)
-    git
     python3
     uv
     vesktop
@@ -26,13 +25,5 @@ in
 
   home-manager.users.${username} = {
     programs.alacritty.enable = true;
-
-    programs.git = {
-      enable = true;
-      settings = {
-        user.name = "He Zhu";
-        user.email = "zhuhe6644@outlook.com";
-      };
-    };
   };
 }
