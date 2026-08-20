@@ -64,12 +64,12 @@ in
           resumeCommand = powerOn;
         }
         {
-          timeout = 1080;
-          command = whenLocked powerOff;
+          timeout = 870;
+          command = whenUnlocked powerOff;
           resumeCommand = powerOn;
         }
         {
-          timeout = 1200;
+          timeout = 900;
           command = whenUnlocked "${swaylock} -f";
         }
       ];
