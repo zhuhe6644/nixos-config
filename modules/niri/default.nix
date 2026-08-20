@@ -5,6 +5,24 @@
   ...
 }:
 
+let
+  wallpaper = ./earth.jpg;
+
+  niri = lib.getExe pkgs.niri;
+  swaylock = lib.getExe pkgs.swaylock;
+  loginctl = lib.getExe' pkgs.systemd "loginctl";
+  powerOff = "${niri} msg action power-off-monitors";
+  powerOn = "${niri} msg action power-on-monitors";
+  isLocked = ''[ "$(${loginctl} show-session auto -p LockedHint --value)" = yes ]'';
+  whenLocked = command: "if ${isLocked}; then ${command}; fi";
+  whenUnlocked = command: "if ! ${isLocked}; then ${command}; fi";
+
+  # Give the polkit agent its own kdeglobal holding Breeze Dark.
+  polkitKdeConfig = pkgs.runCommand "polkit-kde-agent-config" { } ''
+    mkdir -p $out
+    cp ${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors $out/kdeglobals
+  '';
+in
 {
   imports = [ ./waybar.nix ];
 
@@ -27,11 +45,37 @@
     # Notification daemon.
     services.mako.enable = true;
 
-    # Screen lock, bound to Super+Alt+L in config.kdl. Blanks the monitors while locked.
-    programs.swaylock.enable = true;
-    home.packages = [ (pkgs.callPackage ./lock-and-blank.nix { }) ];
+    programs.swaylock = {
+      enable = true;
+      settings = {
+        show-failed-attempts = true;
+        image = wallpaper;
+        scaling = "fill";
+      };
+    };
 
-    # Overwrite this shared dconf key again on every niri start.
+    services.swayidle = {
+      enable = true;
+      systemdTargets = [ "niri.service" ];
+      timeouts = [
+        {
+          timeout = 10;
+          command = whenLocked powerOff;
+          resumeCommand = powerOn;
+        }
+        {
+          timeout = 1080;
+          command = whenLocked powerOff;
+          resumeCommand = powerOn;
+        }
+        {
+          timeout = 1200;
+          command = whenUnlocked "${swaylock} -f";
+        }
+      ];
+      events.before-sleep = whenUnlocked "${swaylock} -f";
+    };
+
     systemd.user.services.dark-color-scheme = {
       Unit = {
         Description = "Prefer a dark colour scheme";
@@ -44,6 +88,26 @@
       Install.WantedBy = [ "niri.service" ];
     };
 
+    # Polkit authentication agent.
+    systemd.user.services.polkit-kde-agent = {
+      Unit = {
+        Description = "Polkit authentication agent";
+        PartOf = [ "niri.service" ];
+        After = [ "niri.service" ];
+      };
+      Service = {
+        # Set up KDE's Qt theming.
+        Environment = [
+          "QT_QPA_PLATFORMTHEME=kde"
+          "QT_PLUGIN_PATH=${pkgs.kdePackages.plasma-integration}/lib/qt-6/plugins:${pkgs.kdePackages.breeze}/lib/qt-6/plugins"
+          "XDG_CONFIG_HOME=${polkitKdeConfig}"
+        ];
+        ExecStart = "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "niri.service" ];
+    };
+
     # Wallpaper. Bound to niri.service.
     systemd.user.services.swaybg = {
       Unit = {
@@ -52,7 +116,7 @@
         After = [ "niri.service" ];
       };
       Service = {
-        ExecStart = "${lib.getExe pkgs.swaybg} --mode fill --image ${./earth.jpg}";
+        ExecStart = "${lib.getExe pkgs.swaybg} --mode fill --image ${wallpaper}";
         Restart = "on-failure";
       };
       Install.WantedBy = [ "niri.service" ];

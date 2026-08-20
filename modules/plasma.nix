@@ -9,4 +9,14 @@
     [org.freedesktop.secrets]
     apiEnabled=false
   '';
+
+  # DrKonqi ships its user units in share/systemd/user, so they load in every
+  # session. This scopes it to only Plasma's.
+  systemd.user.units."drkonqi-coredump-launcher@.service" = {
+    overrideStrategy = "asDropin";
+    text = ''
+      [Unit]
+      ConditionEnvironment=XDG_CURRENT_DESKTOP=KDE
+    '';
+  };
 }
