@@ -15,9 +15,11 @@ in
   services.gvfs.enable = true;
 
   environment.systemPackages = with pkgs; [
-    (useSecretService google-chrome)
     python3
     uv
+    sops
+    age
+    (useSecretService google-chrome)
     vesktop
     telegram-desktop
     nautilus

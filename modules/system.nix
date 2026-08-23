@@ -13,6 +13,8 @@
   };
   nix.optimise.automatic = true;
 
+  boot.tmp.useTmpfs = true;
+
   nixpkgs.config.allowUnfree = true;
 
   time.timeZone = "Europe/Berlin";
