@@ -11,6 +11,18 @@
 
   environment.systemPackages = [ pkgs.wireguard-tools ];
 
+  services.resolved = {
+    enable = true;
+    settings.Resolve = {
+      DNSSEC = "allow-downgrade";
+      DNSOverTLS = "opportunistic";
+      FallbackDNS = [
+        "1.1.1.1"
+        "1.0.0.1"
+      ];
+    };
+  };
+
   home-manager.users.${username} = {
     services.network-manager-applet.enable = true;
 
