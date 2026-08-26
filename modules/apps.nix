@@ -8,9 +8,6 @@ in
 {
   programs.firefox.enable = true;
 
-  programs.vscode.enable = true;
-  programs.vscode.package = useSecretService pkgs.vscode;
-
   # gvfs backs nautilus' trash, network and mount support.
   services.gvfs.enable = true;
 

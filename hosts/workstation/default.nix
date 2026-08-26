@@ -15,6 +15,7 @@
     ../../modules/plasma.nix
     ../../modules/system.nix
     ../../modules/users.nix
+    ../../modules/vscode.nix
     ../../modules/waydroid
   ];
 
