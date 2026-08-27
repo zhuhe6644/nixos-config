@@ -1,4 +1,9 @@
-{ pkgs, username, ... }:
+{
+  inputs,
+  pkgs,
+  username,
+  ...
+}:
 
 let
   # Some apps do not use the Secret Service unless told to.
@@ -17,6 +22,7 @@ in
     sops
     age
     (useSecretService google-chrome)
+    (useSecretService inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt)
     vesktop
     telegram-desktop
     nautilus
