@@ -14,7 +14,6 @@
   services.resolved = {
     enable = true;
     settings.Resolve = {
-      DNSSEC = "allow-downgrade";
       DNSOverTLS = "opportunistic";
       FallbackDNS = [
         "1.1.1.1"
