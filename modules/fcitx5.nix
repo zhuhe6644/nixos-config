@@ -1,5 +1,11 @@
 { pkgs, username, ... }:
 
+let
+  # Drop the cache so the next fcitx5 start recompiles the patches below.
+  clearRimeCache = ''
+    rm -rf "$HOME/.local/share/fcitx5/rime/build"
+  '';
+in
 {
   i18n.inputMethod = {
     enable = true;
@@ -63,12 +69,15 @@
           patch:
             __include: rime_ice_suggestion:/
         '';
+        onChange = clearRimeCache;
       };
       "fcitx5/rime/rime_ice.custom.yaml" = {
         text = ''
           patch:
             "switches/@3/reset": 0
+            "menu/page_size": 9
         '';
+        onChange = clearRimeCache;
       };
     };
   };

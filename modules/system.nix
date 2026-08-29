@@ -15,6 +15,11 @@
 
   boot.tmp.useTmpfs = true;
 
+  boot.kernelParams = [
+    "zswap.enabled=1"
+    "zswap.compressor=zstd"
+  ];
+
   nixpkgs.config.allowUnfree = true;
 
   time.timeZone = "Europe/Berlin";
