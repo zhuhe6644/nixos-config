@@ -59,7 +59,7 @@ in
       systemdTargets = [ "niri.service" ];
       timeouts = [
         {
-          timeout = 10;
+          timeout = 15;
           command = whenLocked powerOff;
           resumeCommand = powerOn;
         }
