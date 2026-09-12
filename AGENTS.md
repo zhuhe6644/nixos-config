@@ -5,6 +5,7 @@ host.
 
 ## Working conventions
 
+- Do not modify `AGENTS.md` without explicit permission from the user.
 - Do not activate a new system generation with `nixos-rebuild switch` unless
   the user explicitly asks to change the running host.
 

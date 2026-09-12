@@ -1,5 +1,4 @@
 {
-  inputs,
   pkgs,
   username,
   ...
@@ -17,12 +16,9 @@ in
   services.gvfs.enable = true;
 
   environment.systemPackages = with pkgs; [
-    python3
-    uv
     sops
     age
     (useSecretService google-chrome)
-    (useSecretService inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt)
     vesktop
     telegram-desktop
     nautilus
