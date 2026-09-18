@@ -9,6 +9,15 @@
   # VPN traffic arrives on a different interface than the routing table expects.
   networking.firewall.checkReversePath = "loose";
 
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      PasswordAuthentication = true;
+      PermitRootLogin = "no";
+    };
+  };
+
   environment.systemPackages = [ pkgs.wireguard-tools ];
 
   services.resolved = {
