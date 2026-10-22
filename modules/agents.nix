@@ -7,8 +7,14 @@
 }:
 
 let
-  chatgpt = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt.override {
+  chatgptPackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt;
+  chatgpt = chatgptPackage.override {
     commandLineArgs = "--password-store=gnome-libsecret";
+    # The native Remote Control device-key module links TPM libraries that
+    # llm-agents does not yet declare.
+    chatgpt-unwrapped = chatgptPackage.unwrapped.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tpm2-tss ];
+    });
   };
 
   # The downloaded agent runtime expects conventional Linux paths. Keep these
