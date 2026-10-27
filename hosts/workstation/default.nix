@@ -5,6 +5,7 @@
     ../../modules/agents.nix
     ../../modules/apps.nix
     ../../modules/audio.nix
+    ../../modules/bluetooth.nix
     ../../modules/credentials.nix
     ../../modules/fcitx5.nix
     ../../modules/gaming.nix
