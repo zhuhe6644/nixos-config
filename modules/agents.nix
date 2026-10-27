@@ -1,69 +1,43 @@
-{
-  inputs,
-  lib,
-  pkgs,
-  username,
-  ...
-}:
+{ inputs, pkgs, ... }:
 
 let
-  chatgptPackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt;
-  chatgpt = chatgptPackage.override {
+  llmAgents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+
+  # The agent runtime the app downloads looks for CA certificates and fontconfig
+  # in paths NixOS lacks. Setting them on the app's wrapper reaches its children
+  # too, including non-login agent shells.
+  chatgptDesktop =
+    (llmAgents.chatgpt.override {
+      commandLineArgs = "--password-store=gnome-libsecret";
+    }).overrideAttrs
+      (old: {
+        postFixup = (old.postFixup or "") + ''
+          wrapProgram "$out/bin/chatgpt" \
+            --set-default SSL_CERT_FILE ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
+            --set-default FONTCONFIG_FILE /etc/fonts/fonts.conf
+        '';
+      });
+
+  # Cowork starts its VM with qemu from PATH, which llm-agents leaves to the
+  # host. Adding it to Claude's FHS environment keeps it off the system PATH.
+  claudeDesktop = llmAgents.claude-desktop.override {
     commandLineArgs = "--password-store=gnome-libsecret";
-    # The native Remote Control device-key module links TPM libraries that
-    # llm-agents does not yet declare.
-    chatgpt-unwrapped = chatgptPackage.unwrapped.overrideAttrs (old: {
-      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.tpm2-tss ];
-    });
+    buildFHSEnv =
+      args:
+      pkgs.buildFHSEnv (
+        args
+        // {
+          targetPkgs = p: args.targetPkgs p ++ [ p.qemu_kvm ];
+        }
+      );
   };
-
-  # The downloaded agent runtime expects conventional Linux paths. Keep these
-  # adaptations on the app and its children, including non-login agent shells.
-  agentChatgpt = chatgpt.overrideAttrs (old: {
-    postFixup = (old.postFixup or "") + ''
-      wrapProgram "$out/bin/chatgpt" \
-        --prefix PATH : ${lib.makeBinPath [ pkgs.bubblewrap ]} \
-        --set-default SSL_CERT_FILE ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
-        --set-default FONTCONFIG_FILE /etc/fonts/fonts.conf
-    '';
-  });
-
-  # Cowork probes fixed distro paths. These must be part of Claude's FHS
-  # environment: host /usr links are hidden by its private /usr mount.
-  coworkRuntime = pkgs.runCommand "claude-cowork-runtime" { } ''
-    test -r ${pkgs.OVMF.firmware}
-    test -r ${pkgs.OVMF.variables}
-    test -x ${lib.getExe pkgs.virtiofsd}
-    mkdir -p "$out/share/OVMF" "$out/libexec"
-    ln -s ${pkgs.OVMF.firmware} "$out/share/OVMF/OVMF_CODE_4M.fd"
-    ln -s ${pkgs.OVMF.variables} "$out/share/OVMF/OVMF_VARS_4M.fd"
-    ln -s ${lib.getExe pkgs.virtiofsd} "$out/libexec/virtiofsd"
-  '';
-
-  claudeDesktop =
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-desktop.override
-      {
-        commandLineArgs = "--password-store=gnome-libsecret";
-        buildFHSEnv =
-          args:
-          pkgs.buildFHSEnv (
-            args
-            // {
-              targetPkgs =
-                p:
-                args.targetPkgs p
-                ++ [
-                  p.qemu_kvm
-                  coworkRuntime
-                ];
-            }
-          );
-      };
 in
 {
   environment.systemPackages = with pkgs; [
-    agentChatgpt
+    chatgptDesktop
     claudeDesktop
+
+    # Claude Code's sandbox.
     bubblewrap
 
     # Common command-line tools for working with repositories and files.
@@ -81,8 +55,4 @@ in
     nodejs
     pnpm
   ];
-
-  # Cowork's KVM micro-VM uses the vhost-vsock transport on the host.
-  boot.kernelModules = [ "vhost_vsock" ];
-  users.users.${username}.extraGroups = [ "kvm" ];
 }
