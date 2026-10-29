@@ -5,6 +5,8 @@
 
   users.users.${username} = {
     isNormalUser = true;
+    # Fixed, because files restored from the backup are owned by this number.
+    uid = 1000;
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -22,7 +24,7 @@
       home.username = username;
       home.homeDirectory = "/home/${username}";
 
-      home.stateVersion = "26.05";
+      home.stateVersion = "26.11";
 
       programs.home-manager.enable = true;
     };

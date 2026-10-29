@@ -1,6 +1,9 @@
 {
   imports = [
+    ./boot.nix
+    ./disks.nix
     ./hardware-configuration.nix
+    ./tpm.nix
 
     ../../modules/agents.nix
     ../../modules/apps.nix
@@ -22,14 +25,10 @@
 
   networking.hostName = "workstation";
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 100;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # Discrete NVIDIA GPU.
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia.open = true;
 
   # The NixOS release this machine was first installed with. Never change it.
-  system.stateVersion = "26.05";
+  system.stateVersion = "26.11";
 }

@@ -12,10 +12,24 @@
 
     llm-agents.url = "github:numtide/llm-agents.nix";
     llm-agents.inputs.nixpkgs.follows = "nixpkgs";
+
+    disko.url = "github:nix-community/disko/latest";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    lanzaboote.url = "github:nix-community/lanzaboote/v1.2.0";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
-    inputs@{ flake-parts, nixpkgs, ... }:
+    inputs@{
+      self,
+      flake-parts,
+      nixpkgs,
+      ...
+    }:
+    let
+      username = "lucoder";
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
 
@@ -23,16 +37,22 @@
         { pkgs, ... }:
         {
           formatter = pkgs.nixfmt-tree;
+
+          # The installer stick, see installer/default.nix.
+          packages.installer-iso = self.nixosConfigurations.installer.config.system.build.isoImage;
         };
 
       # `nixpkgs.hostPlatform` in hardware-configuration.nix sets the system.
       flake.nixosConfigurations.workstation = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          inherit inputs;
-          username = "lucoder";
-        };
+        specialArgs = { inherit inputs username; };
 
         modules = [ ./hosts/workstation ];
+      };
+
+      flake.nixosConfigurations.installer = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs username; };
+
+        modules = [ ./installer ];
       };
     };
 }
