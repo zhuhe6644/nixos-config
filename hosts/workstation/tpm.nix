@@ -28,18 +28,25 @@ in
 
   boot.initrd.systemd.services.tpm-lock = {
     description = "Lock the disk key in the TPM until the next start";
+    # Ordered after tpm2.target, which systemd pulls in when the firmware reports
+    # a TPM, to wait for it. Pulled in here as well, it would make start-up wait
+    # 90 seconds for a TPM that's turned off.
     after = [
       "systemd-cryptsetup@cryptroot.service"
       "tpm2.target"
     ];
-    wants = [ "tpm2.target" ];
     # The root file system isn't mounted unless this succeeds. If the TPM is
     # there but failing, start-up stops here; turning the TPM off in the BIOS
     # gets past it, with the recovery key.
     before = [ "sysroot.mount" ];
     requiredBy = [ "sysroot.mount" ];
     unitConfig.DefaultDependencies = false;
-    serviceConfig.Type = "oneshot";
+    serviceConfig = {
+      Type = "oneshot";
+      # Otherwise it's inactive again once done, and every later start job for
+      # sysroot.mount runs it once more.
+      RemainAfterExit = true;
+    };
     script = ''
       pcr=/sys/class/tpm/tpm0/pcr-sha256/15
       # Without a TPM, there's no key in it to lock.
@@ -80,6 +87,11 @@ in
       if ! key=$(keyctl request user cryptsetup 2>/dev/null); then
         echo "The TPM unlocked the disk."
         exit 0
+      fi
+      # Checked before anything is wiped: the TPM may only be turned off for now.
+      if [ ! -e /sys/class/tpm/tpm0 ]; then
+        echo "There's no TPM, as when it's turned off in the BIOS, so the disk key isn't sealed to it." >&2
+        exit 1
       fi
 
       efi_byte() {

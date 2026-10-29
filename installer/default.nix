@@ -39,7 +39,6 @@ let
       );
       DISKO_FORMAT = lib.getExe' workstation.system.build.format "disko-format";
       DISKO_MOUNT = lib.getExe' workstation.system.build.mount "disko-mount";
-      DISKO_UNMOUNT = lib.getExe' workstation.system.build.unmount "disko-unmount";
       LUKS_NAME = luks.name;
       LUKS_DEVICE = luks.device;
       LUKS_KEY = luks.passwordFile;
@@ -78,7 +77,11 @@ in
     packages = [ pkgs.terminus_font ];
   };
 
-  environment.systemPackages = [ installWorkstation ];
+  environment.systemPackages = [
+    installWorkstation
+    # In case the firmware doesn't take the Secure Boot keys at the end.
+    pkgs.sbctl
+  ];
 
   services.getty.helpLine = lib.mkAfter ''
 

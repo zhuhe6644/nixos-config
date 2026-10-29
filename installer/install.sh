@@ -38,7 +38,8 @@ efi_byte() {
   od -An -t u1 -j 4 -N 1 "/sys/firmware/efi/efivars/$1-8be4df61-93ca-11d2-aa0d-00e098032b8c" 2>/dev/null | tr -d ' '
 }
 
-# Whatever an earlier, interrupted run left mounted or open.
+# Unmounts and closes what this run opened, or what an earlier, interrupted run
+# left mounted or open.
 tear_down() {
   umount --recursive "$mnt" 2>/dev/null || true
   swapoff --all 2>/dev/null || true
@@ -178,14 +179,16 @@ echo "  For $TARGET_USER. To keep the one you have now, type that."
 until nixos-enter --root "$mnt" --silent -- /nix/var/nix/profiles/system/sw/bin/passwd "$TARGET_USER"; do
   echo "  Try again."
 done
-"$DISKO_UNMOUNT" >"$state/disko-unmount.log" 2>&1
+# Not disko's unmount: it leaves the volume open, and then can't close the LVM
+# pool under it.
+tear_down
 
 step "Enrolling the Secure Boot keys"
 
 # Last, because it ends Setup Mode: from here on, the firmware only starts what
 # these keys signed, plus whatever Microsoft signed.
 if ! sbctl enroll-keys --microsoft; then
-  fail "The firmware didn't take the keys. They're still in /var/lib/sbctl; try: sbctl enroll-keys --microsoft"
+  fail "The firmware didn't take the keys. They're still in /var/lib/sbctl; try: sudo sbctl enroll-keys --microsoft"
 fi
 
 printf '\n%sThe workstation is installed.%s\n\n' "$green" "$plain"
