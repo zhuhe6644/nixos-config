@@ -28,6 +28,9 @@ in
 
   programs.niri.enable = true;
 
+  # Keep Qt's portal theme scoped to niri so Plasma can use its own integration.
+  systemd.user.services.niri.environment.QT_QPA_PLATFORMTHEME = "xdgdesktopportal";
+
   # Make Electron/Chromium apps run natively on Wayland.
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
