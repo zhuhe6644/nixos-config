@@ -192,6 +192,11 @@ if ! sbctl enroll-keys --microsoft; then
 fi
 
 printf '\n%sThe workstation is installed.%s\n\n' "$green" "$plain"
+# Reset To Setup Mode empties dbx as well, the firmware's list of revoked
+# signatures, and sbctl doesn't write one back.
+if [ ! -e /sys/firmware/efi/efivars/dbx-d719b2cb-3d3a-4596-a3bc-dad00e67656f ]; then
+  printf '%s%s%s\n\n' "$red" "The firmware's list of revoked signatures (dbx) is empty: the PC would start what Microsoft has revoked, and fwupd can't update an empty list. Restore it in the BIOS before step 2, so the disk key is sealed with it in place: Security › Secure Boot › Key Management › Forbidden Signatures › Update, and Yes to load the factory default." "$plain"
+fi
 cat <<EOF
 Next:
  1. Restart and press F11 at the MSI logo, then pick this stick. The PC has to
