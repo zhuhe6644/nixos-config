@@ -12,7 +12,13 @@
     capSysNice = true;
     enableWsi = true;
   };
-  programs.gamemode.enable = true;
+
+  # The DualSense's touchpad registers as an ordinary touchpad, so niri and
+  # Plasma move the pointer with it. Hide it from libinput only, so Steam and
+  # games still read it. The glob covers its USB and Bluetooth names.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="*DualSense*Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+  '';
 
   home-manager.users.${username} = {
     programs.mangohud.enable = true;
