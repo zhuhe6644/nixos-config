@@ -9,9 +9,11 @@
   };
   programs.gamescope = {
     enable = true;
-    capSysNice = true;
     enableWsi = true;
   };
+
+  # GE-Proton uses NTSync when /dev/ntsync exists.
+  boot.kernelModules = [ "ntsync" ];
 
   # The DualSense's touchpad registers as an ordinary touchpad, so niri and
   # Plasma move the pointer with it. Hide it from libinput only, so Steam and

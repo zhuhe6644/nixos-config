@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 {
+  # The newest Nix release, ahead of nixpkgs' default.
+  nix.package = pkgs.nixVersions.latest;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
@@ -14,6 +16,9 @@
   nix.optimise.automatic = true;
 
   boot.tmp.useTmpfs = true;
+
+  # The newest kernel, not the LTS default.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.kernelParams = [
     "zswap.enabled=1"

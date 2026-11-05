@@ -1,3 +1,5 @@
+{ config, ... }:
+
 {
   imports = [
     ./boot.nix
@@ -28,6 +30,21 @@
   # Discrete NVIDIA GPU.
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia.open = true;
+  # The newer of NVIDIA's production and new feature drivers.
+  hardware.nvidia.branch = "latest";
+
+  # GPU Configuration.
+  services.lact.enable = true;
+
+  # Motherboard fan controller driver.
+  boot.extraModulePackages = [ config.boot.kernelPackages.nct6687d ];
+  boot.kernelModules = [ "nct6687" ];
+  # Writes all seven points of a system fan's curve rather than only the first point.
+  boot.extraModprobeConfig = ''
+    options nct6687 msi_fan_brute_force=1
+  '';
+  # Fan control app.
+  programs.coolercontrol.enable = true;
 
   # The NixOS release this machine was first installed with. Never change it.
   system.stateVersion = "26.11";
