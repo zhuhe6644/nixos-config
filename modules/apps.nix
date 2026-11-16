@@ -26,5 +26,10 @@ in
 
   home-manager.users.${username} = {
     programs.kitty.enable = true;
+
+    xdg.configFile."umbriel-mimeapps.list".text = ''
+      [Default Applications]
+      inode/directory=org.gnome.Nautilus.desktop;
+    '';
   };
 }

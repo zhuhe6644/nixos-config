@@ -14,6 +14,10 @@ let
     refresh_rate = 240.084;
     scale = 1.5;
   };
+  cursorTheme = {
+    name = "Adwaita";
+    package = pkgs.adwaita-icon-theme;
+  };
   toml = pkgs.formats.toml { };
 in
 {
@@ -43,6 +47,7 @@ in
     defaultSession = "umbriel";
     noctalia-greeter = {
       enable = true;
+      inherit cursorTheme;
       settings = {
         session.default = config.services.displayManager.defaultSession;
         output = display;
@@ -57,21 +62,29 @@ in
   environment.systemPackages = [ pkgs.wl-clipboard ];
 
   home-manager.users.${username} = {
+    home.packages = [ pkgs.adwaita-fonts ];
+    home.pointerCursor = cursorTheme // {
+      enable = true;
+      # Match Umbriel's default size in logical pixels.
+      size = 24;
+    };
+
     xdg.configFile."umbriel/config.toml".source = toml.generate "umbriel-config.toml" {
       include = {
         files = [ "${config.programs.umbriel.package}/share/umbriel/config.toml" ];
         optional.files = [ "~/.config/umbriel/noctalia.toml" ];
       };
       general.xwayland_native_resolution = true;
+      hot_corners.top_left.delay_ms = 150;
       output.DP-3 = {
         mode = "${toString display.width}x${toString display.height}@${builtins.toJSON display.refresh_rate}";
         inherit (display) scale;
         hdr = "on";
-        # Match the SDR reference white and adaptive sync policy used with this panel.
-        sdr_white = 276;
+        sdr_white = 120;
         vrr = "always";
       };
       input = {
+        cursor.theme = cursorTheme.name;
         mouse = {
           accel_profile = "flat";
           sensitivity = 0.4;
