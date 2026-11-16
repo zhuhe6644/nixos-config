@@ -25,6 +25,6 @@ in
   ];
 
   home-manager.users.${username} = {
-    programs.alacritty.enable = true;
+    programs.kitty.enable = true;
   };
 }

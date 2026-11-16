@@ -10,15 +10,12 @@
     ../../modules/agents.nix
     ../../modules/apps.nix
     ../../modules/audio.nix
-    ../../modules/bluetooth.nix
     ../../modules/credentials.nix
     ../../modules/fcitx5.nix
     ../../modules/gaming.nix
     ../../modules/git.nix
-    ../../modules/login.nix
     ../../modules/networking.nix
-    ../../modules/niri
-    ../../modules/plasma.nix
+    ../../modules/noctalia.nix
     ../../modules/system.nix
     ../../modules/users.nix
     ../../modules/vscode.nix

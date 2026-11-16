@@ -36,9 +36,8 @@ in
     };
   };
 
-  # niri forwards a bare Super press to the focused window, and Android maps
-  # keycodes 125/126 to META_* in Generic.kl, popping the assistant on every Mod
-  # chord. Blanking them in the overlay's copy stops Android from seeing Super.
+  # Reserve Super for desktop shortcuts. Android maps keycodes 125/126 to
+  # META_* and can open its assistant when the focused window receives them.
   systemd.services.waydroid-keylayout = {
     description = "Unmap Super in Waydroid's Android key layout";
     before = [ "waydroid-container.service" ];
@@ -67,7 +66,7 @@ in
         exit 1
       fi
 
-      sed -e '/^key 12[56][[:space:]]/s|^|# niri owns Super, unmapped by NixOS config: |' \
+      sed -e '/^key 12[56][[:space:]]/s|^|# Super reserved for the desktop: |' \
         "$stock" >"$stock.patched"
       install -Dm0644 "$stock.patched" "/var/lib/waydroid/overlay${keyLayout}"
     '';

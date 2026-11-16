@@ -1,4 +1,4 @@
-{ pkgs, username, ... }:
+{ pkgs, ... }:
 
 {
   networking.networkmanager = {
@@ -18,7 +18,15 @@
     };
   };
 
-  environment.systemPackages = [ pkgs.wireguard-tools ];
+  environment.systemPackages = [
+    pkgs.wireguard-tools
+    # Keep the VPN profile editor available. Noctalia provides the network applet.
+    (pkgs.linkFarm "nm-connection-editor" {
+      "bin/nm-connection-editor" = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
+      "share/applications/nm-connection-editor.desktop" =
+        "${pkgs.networkmanagerapplet}/share/applications/nm-connection-editor.desktop";
+    })
+  ];
 
   services.resolved = {
     enable = true;
@@ -29,17 +37,5 @@
         "1.0.0.1"
       ];
     };
-  };
-
-  home-manager.users.${username} = {
-    services.network-manager-applet.enable = true;
-
-    # Ask nm-applet for a StatusNotifierItem instead of a legacy XEmbed icon,
-    # which is what the waybar tray understands.
-    xsession.preferStatusNotifierItems = true;
-
-    # The applet module puts nothing on PATH; installing the package is what
-    # makes `nm-connection-editor` launchable from a shell or from fuzzel.
-    home.packages = [ pkgs.networkmanagerapplet ];
   };
 }

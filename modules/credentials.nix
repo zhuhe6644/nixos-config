@@ -7,6 +7,14 @@
 
 let
   homeDir = config.users.users.${username}.home;
+  bitwarden = pkgs.bitwarden-desktop.overrideAttrs (prev: {
+    # The Linux autostart writer requires an absolute path. Point it at the
+    # active system so a saved login item follows upgrades and rollbacks.
+    postPatch = prev.postPatch + ''
+      substituteInPlace apps/desktop/src/main/messaging.main.ts \
+        --replace-fail 'execPath: app.getPath("exe"),' 'execPath: "/run/current-system/sw/bin/bitwarden",'
+    '';
+  });
 in
 {
   # Keep the credential mapping root-owned: these PAM services can authorize
@@ -37,11 +45,7 @@ in
       enable = true;
       control = "sufficient";
     };
-    swaylock.u2f = {
-      enable = true;
-      control = "sufficient";
-    };
-    kde.u2f = {
+    noctalia.u2f = {
       enable = true;
       control = "sufficient";
     };
@@ -60,7 +64,7 @@ in
   services.gnome.gnome-keyring.enable = true;
 
   # Bitwarden's SSH agent, in place of gnome-keyring's.
-  environment.systemPackages = [ pkgs.bitwarden-desktop ];
+  environment.systemPackages = [ bitwarden ];
   services.gnome.gcr-ssh-agent.enable = false;
   environment.sessionVariables.SSH_AUTH_SOCK = "${homeDir}/.bitwarden-ssh-agent.sock";
 
