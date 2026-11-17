@@ -9,14 +9,14 @@ let
   # nixd evaluates this flake to know which options exist, so it needs an
   # absolute path. Hardcoding it also keeps completion working when VS Code is
   # opened somewhere other than this repo.
-  configPath = "/home/${username}/Projects/nixos-config";
+  workstation = ''(builtins.getFlake "/home/${username}/Projects/nixos-config").nixosConfigurations.workstation'';
 in
 {
   home-manager.users.${username} = {
     programs.vscode = {
       enable = true;
       package = pkgs.vscode.override {
-        # Pinned to the Secret Service for the reason described in apps.nix.
+        # Electron's synchronous safeStorage defaults to basic_text on Umbriel.
         commandLineArgs = "--password-store=gnome-libsecret";
       };
 
@@ -27,15 +27,15 @@ in
           "nix.enableLanguageServer" = true;
           "nix.serverPath" = lib.getExe pkgs.nixd;
           "nix.serverSettings".nixd = {
-            nixpkgs.expr = ''import (builtins.getFlake "${configPath}").inputs.nixpkgs { }'';
+            nixpkgs.expr = "${workstation}.pkgs";
             # nix.formatterPath is ignored while the language server is on.
             formatting.command = [
               (lib.getExe pkgs.nixfmt)
               "-"
             ];
             options = {
-              nixos.expr = ''(builtins.getFlake "${configPath}").nixosConfigurations.workstation.options'';
-              home-manager.expr = ''(builtins.getFlake "${configPath}").nixosConfigurations.workstation.options.home-manager.users.type.getSubOptions [ ]'';
+              nixos.expr = "${workstation}.options";
+              home-manager.expr = "${workstation}.options.home-manager.users.type.getSubOptions [ ]";
             };
           };
 

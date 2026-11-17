@@ -99,6 +99,10 @@ in
           action = "spawn noctalia msg session lock";
           repeat = false;
         };
+        Print = {
+          action = "spawn noctalia msg screenshot-region";
+          repeat = false;
+        };
       };
     };
 

@@ -41,10 +41,16 @@ efi_byte() {
 # Unmounts and closes what this run opened, or what an earlier, interrupted run
 # left mounted or open.
 tear_down() {
-  umount --recursive "$mnt" 2>/dev/null || true
-  swapoff --all 2>/dev/null || true
-  cryptsetup close "$LUKS_NAME" 2>/dev/null || true
-  vgchange --activate n "$volume_group" >/dev/null 2>&1 || true
+  if mountpoint -q "$mnt"; then
+    umount --recursive "$mnt"
+  fi
+  # disko leaves randomly encrypted swap inactive on the installer.
+  if cryptsetup status "$LUKS_NAME" >/dev/null 2>&1; then
+    cryptsetup close "$LUKS_NAME"
+  fi
+  if vgs "$volume_group" >/dev/null 2>&1; then
+    vgchange --activate n "$volume_group"
+  fi
 }
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -119,13 +125,13 @@ echo "  Done; the details are in $state/disko-format.log."
 
 step "Recovery key"
 
-# systemd-cryptenroll prints just the key on stdout. Its other output, a QR
-# code of the key included, stays out of the logs.
-recovery_key=$(systemd-cryptenroll --unlock-key-file="$LUKS_KEY" --recovery-key "$LUKS_DEVICE" 2>"$state/cryptenroll.err") ||
+# systemd prints the key on stdout. Disable its QR code on stderr so the
+# diagnostics file contains only enrollment messages.
+recovery_key=$(SYSTEMD_COLORS=0 systemd-cryptenroll --unlock-key-file="$LUKS_KEY" --recovery-key "$LUKS_DEVICE" 2>"$state/cryptenroll.err") ||
   fail "systemd-cryptenroll failed: $(cat "$state/cryptenroll.err")"
 show_recovery_key() {
   printf '\n    %s%s%s\n\n' "$bold" "$recovery_key" "$plain"
-  qrencode --type=ANSIUTF8 "$recovery_key"
+  printf %s "$recovery_key" | qrencode --type=ANSI
 }
 echo "This is the disk's recovery key:"
 show_recovery_key
@@ -138,13 +144,16 @@ EOF
 read -r -p "Press Enter once you've saved it. " _
 printf '\e[2J\e[H'
 while :; do
-  read -r -p "Type the recovery key from your copy, to check it: " typed
-  if printf '%s' "$typed" | cryptsetup open --test-passphrase --key-file=- "$LUKS_DEVICE" 2>/dev/null; then
+  read -rs -p "Type the recovery key from your copy, to check it: " typed
+  printf '\n'
+  if [[ $typed == "$recovery_key" ]] &&
+     printf '%s' "$typed" | cryptsetup open --test-passphrase --key-file=- "$LUKS_DEVICE" 2>/dev/null; then
     break
   fi
   echo "That doesn't match. Here it is again:"
   show_recovery_key
 done
+unset typed recovery_key
 echo "  Your copy is right."
 
 # disko left the volume open, and it stays open to the end, so nothing needs

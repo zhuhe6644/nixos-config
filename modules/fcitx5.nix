@@ -1,10 +1,15 @@
-{ pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 let
   # Drop the cache so the next fcitx5 start recompiles the patches below.
-  clearRimeCache = ''
-    rm -rf "$HOME/.local/share/fcitx5/rime/build"
-  '';
+  rimeBuild = "${config.home-manager.users.${username}.xdg.dataHome}/fcitx5/rime/build";
+  clearRimeCache = "rm -rf -- ${lib.escapeShellArg rimeBuild}";
 in
 {
   i18n.inputMethod = {
@@ -13,7 +18,6 @@ in
 
     fcitx5 = {
       addons = with pkgs; [
-        fcitx5-gtk
         (fcitx5-rime.override { rimeDataPkgs = [ rime-ice ]; })
         fcitx5-fluent
       ];

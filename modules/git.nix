@@ -17,17 +17,12 @@ in
       settings = {
         user.name = "He Zhu";
         user.email = email;
-
-        # Without a signer list git can read its own signatures but not vouch
-        # for them, and reports every commit as unverified.
-        gpg.ssh.allowedSignersFile = toString (
-          pkgs.writeText "git-allowed-signers" "${email} ${signingKey}\n"
-        );
       };
 
       signing = {
         format = "ssh";
         key = "key::${signingKey}";
+        allowedSigners = "${email} ${signingKey}\n";
         signByDefault = true;
       };
     };

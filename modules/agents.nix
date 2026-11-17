@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 
 let
   llmAgents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
@@ -6,21 +11,18 @@ let
   # The agent runtime the app downloads looks for CA certificates and fontconfig
   # in paths NixOS lacks. Setting them on the app's wrapper reaches its children
   # too, including non-login agent shells.
-  chatgptDesktop =
-    (llmAgents.chatgpt.override {
-      commandLineArgs = "--password-store=gnome-libsecret";
-    }).overrideAttrs
-      (old: {
-        postFixup = (old.postFixup or "") + ''
-          wrapProgram "$out/bin/chatgpt" \
-            --set-default SSL_CERT_FILE ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
-            --set-default FONTCONFIG_FILE /etc/fonts/fonts.conf
-        '';
-      });
+  chatgptDesktop = llmAgents.chatgpt.overrideAttrs (old: {
+    postFixup = (old.postFixup or "") + ''
+      wrapProgram "$out/bin/chatgpt" \
+        --set-default SSL_CERT_FILE ${config.security.pki.caBundle} \
+        --set-default FONTCONFIG_FILE /etc/fonts/fonts.conf
+    '';
+  });
 
   # Cowork starts its VM with qemu from PATH, which llm-agents leaves to the
   # host. Adding it to Claude's FHS environment keeps it off the system PATH.
   claudeDesktop = llmAgents.claude-desktop.override {
+    # Claude rejects Electron's default basic_text backend on Umbriel.
     commandLineArgs = "--password-store=gnome-libsecret";
     buildFHSEnv =
       args:

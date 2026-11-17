@@ -1,74 +1,83 @@
 { pkgs, ... }:
 
 let
-  # Autodetected gralloc=gbm / egl=mesa renders a black window on NVIDIA, so pin
-  # the software renderer instead. https://wiki.nixos.org/wiki/Waydroid
-  properties = {
-    "ro.hardware.gralloc" = "default";
-    "ro.hardware.egl" = "swiftshader";
-  };
-
-  propertiesJSON = pkgs.writeText "waydroid-properties.json" (builtins.toJSON properties);
+  # Autodetection picks the AMD render node on this NVIDIA desktop, resulting
+  # in a black window. Use the software renderer for both fresh and existing images.
+  renderer = pkgs.writeText "waydroid-renderer.prop" ''
+    ro.hardware.gralloc=default
+    ro.hardware.egl=swiftshader
+  '';
 
   # Path inside the Android system image, and the same path under the overlay.
   keyLayout = "/system/usr/keylayout/Generic.kl";
 in
 {
   virtualisation.waydroid.enable = true;
-  # Newer kernel versions may need the nftables-aware fork.
+  # The upstream iptables helper prefers iptables-legacy. This kernel has
+  # CONFIG_NETFILTER_XTABLES_LEGACY disabled.
   virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
-  # Waydroid regenerates its properties in /var/lib/waydroid on init/upgrade, so
-  # re-apply ours before the container starts.
-  systemd.services.waydroid-properties = {
-    description = "Apply declarative Waydroid properties";
-    before = [ "waydroid-container.service" ];
-    wantedBy = [
-      "waydroid-container.service"
-      "multi-user.target"
-    ];
-    # Nothing to patch until `waydroid init` has created the state directory.
-    unitConfig.ConditionPathExists = "/var/lib/waydroid/waydroid.cfg";
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.python3}/bin/python3 ${./properties.py} ${propertiesJSON}";
-    };
+  # init and upgrade can replace the image while the D-Bus service stays up.
+  # Waydroid writes the base properties after it has finished installing images.
+  systemd.paths.waydroid-setup = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig.PathChanged = "/var/lib/waydroid/waydroid_base.prop";
   };
 
-  # Reserve Super for desktop shortcuts. Android maps keycodes 125/126 to
-  # META_* and can open its assistant when the focused window receives them.
-  systemd.services.waydroid-keylayout = {
-    description = "Unmap Super in Waydroid's Android key layout";
+  systemd.services.waydroid-setup = {
+    description = "Apply the workstation renderer and key layout to Waydroid";
     before = [ "waydroid-container.service" ];
-    wantedBy = [
-      "waydroid-container.service"
-      "multi-user.target"
-    ];
-    # Nothing to derive from until `waydroid init` has fetched the images.
-    unitConfig.ConditionPathExists = "/var/lib/waydroid/images/system.img";
+    wantedBy = [ "waydroid-container.service" ];
     path = [
+      pkgs.crudini
+      pkgs.diffutils
       pkgs.e2fsprogs
       pkgs.gnused
     ];
     serviceConfig = {
       Type = "oneshot";
-      RemainAfterExit = true;
+      StateDirectory = "waydroid";
     };
     script = ''
-      stock=$(mktemp)
-      trap 'rm -f "$stock" "$stock.patched"' EXIT
+      set -o pipefail
+      cfg="$STATE_DIRECTORY/waydroid.cfg"
+      base="$STATE_DIRECTORY/waydroid_base.prop"
+      # Waydroid treats a rootfs directory plus a cfg as initialized. Leave an
+      # interrupted install with a missing cfg eligible for `waydroid init`.
+      if [ ! -f "$cfg" ] && [ -d "$STATE_DIRECTORY/rootfs" ]; then
+        exit 0
+      fi
+      crudini --merge "$cfg" properties < ${renderer}
+      if [ ! -f "$base" ]; then
+        exit 0
+      fi
 
-      # debugfs reads the ext4 image in place, so the container can stay running.
-      debugfs -R "dump ${keyLayout} $stock" /var/lib/waydroid/images/system.img
-      if [ ! -s "$stock" ]; then
+      # Existing installations use their generated properties until the next
+      # upgrade. Only write the watched file when a renderer value differs.
+      while IFS='=' read -r key value; do
+        if [[ $(crudini --get "$base" "" "$key" 2>/dev/null) != "$value" ]]; then
+          crudini --ini-options=nospace --merge "$base" < ${renderer}
+          break
+        fi
+      done < ${renderer}
+
+      # Android maps Super to META_* and can open its assistant on desktop shortcuts.
+      images=$(crudini --get "$cfg" waydroid images_path 2>/dev/null) || images="$STATE_DIRECTORY/images"
+      target="$STATE_DIRECTORY/overlay${keyLayout}"
+      mkdir -p "$(dirname "$target")"
+      patched=$(mktemp "$target.XXXXXX")
+      trap 'rm -f "$patched"' EXIT
+
+      debugfs -R 'cat ${keyLayout}' "$images/system.img" |
+        sed -E '/^[[:space:]]*key[[:space:]]+12[56][[:space:]]/s/^/# Super reserved for the desktop: /' >"$patched"
+      if [ ! -s "$patched" ]; then
         echo "could not read ${keyLayout} out of system.img" >&2
         exit 1
       fi
-
-      sed -e '/^key 12[56][[:space:]]/s|^|# Super reserved for the desktop: |' \
-        "$stock" >"$stock.patched"
-      install -Dm0644 "$stock.patched" "/var/lib/waydroid/overlay${keyLayout}"
+      if ! cmp -s "$patched" "$target"; then
+        chmod 0644 "$patched"
+        mv -fT "$patched" "$target"
+      fi
     '';
   };
 }

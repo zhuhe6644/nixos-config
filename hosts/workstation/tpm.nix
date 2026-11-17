@@ -48,16 +48,15 @@ in
       RemainAfterExit = true;
     };
     script = ''
-      pcr=/sys/class/tpm/tpm0/pcr-sha256/15
       # Without a TPM, there's no key in it to lock.
-      if [ ! -e "$pcr" ]; then
+      if [ ! -d /sys/class/tpm/tpm0 ]; then
         echo "There's no TPM."
         exit 0
       fi
       ${config.boot.initrd.systemd.package}/lib/systemd/systemd-pcrextend --pcr=15 disk-opened
-      read -r value <"$pcr"
-      if [[ $value =~ ^0+$ ]]; then
-        echo "PCR 15 is still zero, so the TPM would still give out the disk key." >&2
+      if ! read -r value </sys/class/tpm/tpm0/pcr-sha256/15 ||
+         [[ ! $value =~ ^[[:xdigit:]]{64}$ || $value =~ ^0+$ ]]; then
+        echo "Could not verify that SHA-256 PCR 15 was extended." >&2
         exit 1
       fi
     '';
@@ -75,7 +74,10 @@ in
       "tpm2.target"
       "systemd-tpm2-setup.service"
     ];
-    path = [ pkgs.keyutils ];
+    path = [
+      pkgs.cryptsetup
+      pkgs.keyutils
+    ];
     serviceConfig = {
       Type = "oneshot";
       # Links in root's keyring, where systemd-cryptsetup keeps whatever was
@@ -83,9 +85,8 @@ in
       KeyringMode = "shared";
     };
     script = ''
-      # Nothing was typed if the TPM unlocked the disk.
       if ! key=$(keyctl request user cryptsetup 2>/dev/null); then
-        echo "The TPM unlocked the disk."
+        echo "No disk passphrase is cached. Keeping the current TPM enrollment."
         exit 0
       fi
       # Checked before anything is wiped: the TPM may only be turned off for now.
@@ -108,16 +109,27 @@ in
         exit 1
       fi
 
-      # Everything typed, each followed by a NUL byte. The last one opened the
-      # disk.
+      # systemd caches distinct passphrases separated by NULs. The cache is
+      # shared across volumes and may expire between requesting and reading it.
       mapfile -d "" typed < <(keyctl pipe "$key")
+      unlock_key=
+      for ((i=''${#typed[@]}-1; i>=0; i--)); do
+        if printf %s "''${typed[i]}" | cryptsetup open --test-passphrase --key-file=- ${luksDevice}; then
+          unlock_key=''${typed[i]}
+          break
+        fi
+      done
+      if [[ -z $unlock_key ]]; then
+        echo "No cached passphrase unlocks the root volume. Keeping the current TPM enrollment." >&2
+        exit 1
+      fi
 
       # Wiped first: with PCR 7 unchanged (say, after the TPM was cleared),
       # systemd-cryptenroll would keep the old, useless enrollment instead.
       systemd-cryptenroll --wipe-slot=tpm2 ${luksDevice}
       # tpm-lock has changed PCR 15 by now, so the zero to seal to is spelled
       # out rather than read from the TPM.
-      printf %s "''${typed[-1]}" |
+      printf %s "$unlock_key" |
         systemd-cryptenroll --unlock-key-file=/dev/stdin --tpm2-device=auto \
           --tpm2-pcrs=7+15:sha256=${lib.strings.replicate 64 "0"} ${luksDevice}
       echo "Sealed the disk key to the TPM: the next start unlocks on its own."

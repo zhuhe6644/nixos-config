@@ -4,11 +4,6 @@
   ...
 }:
 
-let
-  # Some apps do not use the Secret Service unless told to.
-  useSecretService =
-    package: package.override { commandLineArgs = "--password-store=gnome-libsecret"; };
-in
 {
   programs.firefox.enable = true;
 
@@ -18,7 +13,7 @@ in
   environment.systemPackages = with pkgs; [
     sops
     age
-    (useSecretService google-chrome)
+    google-chrome
     vesktop
     telegram-desktop
     nautilus

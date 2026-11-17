@@ -20,10 +20,10 @@
   # The newest kernel, not the LTS default.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  boot.kernelParams = [
-    "zswap.enabled=1"
-    "zswap.compressor=zstd"
-  ];
+  boot.zswap = {
+    enable = true;
+    compressor = "zstd";
+  };
 
   nixpkgs.config.allowUnfree = true;
 
@@ -37,16 +37,7 @@
   # };
 
   # Run unpatched dynamically linked binaries (e.g. downloaded toolchains).
-  programs.nix-ld = {
-    enable = true;
-    libraries = with pkgs; [
-      # steam-run.fhsenv.args.multiPkgs pkgs
-      # (pkgs.runCommand "steamrun-lib" {} "mkdir $out; ln -s ${pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")
-      stdenv.cc.cc.lib # libstdc++, libgcc_s
-      zlib
-      openssl
-    ];
-  };
+  programs.nix-ld.enable = true;
 
   # Build and run aarch64 binaries under QEMU emulation.
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
