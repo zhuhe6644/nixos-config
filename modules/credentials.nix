@@ -35,27 +35,9 @@ in
   };
 
   security.pam.services = {
-    "polkit-1".u2f = {
-      enable = true;
-      control = "sufficient";
-    };
-    sudo.u2f = {
-      enable = true;
-      control = "sufficient";
-    };
-    noctalia.u2f = {
-      enable = true;
-      control = "sufficient";
-    };
-  };
-
-  # Allow polkit to access FIDO2 devices when U2F is enabled per service.
-  systemd.services."polkit-agent-helper@".serviceConfig = {
-    PrivateDevices = false;
-    DeviceAllow = [
-      "/dev/urandom r"
-      "char-hidraw rw"
-    ];
+    "polkit-1".u2f.enable = true;
+    sudo.u2f.enable = true;
+    noctalia.u2f.enable = true;
   };
 
   # Secret Service backend for apps that store credentials.

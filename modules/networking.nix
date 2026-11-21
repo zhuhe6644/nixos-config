@@ -6,8 +6,7 @@
     plugins = [ pkgs.networkmanager-openvpn ];
   };
 
-  # VPN traffic arrives on a different interface than the routing table expects.
-  networking.firewall.checkReversePath = "loose";
+  networking.nftables.enable = true;
 
   boot.kernelModules = [ "tcp_bbr" ];
   boot.kernel.sysctl = {
@@ -19,7 +18,6 @@
 
   services.openssh = {
     enable = true;
-    openFirewall = true;
     settings = {
       PasswordAuthentication = true;
       PermitRootLogin = "no";

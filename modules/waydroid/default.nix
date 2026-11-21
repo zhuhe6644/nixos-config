@@ -13,9 +13,6 @@ let
 in
 {
   virtualisation.waydroid.enable = true;
-  # The upstream iptables helper prefers iptables-legacy. This kernel has
-  # CONFIG_NETFILTER_XTABLES_LEGACY disabled.
-  virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
   # init and upgrade can replace the image while the D-Bus service stays up.
   # Waydroid writes the base properties after it has finished installing images.

@@ -19,10 +19,6 @@
     useGlobalPkgs = true;
     useUserPackages = true;
 
-    users.${username} = {
-      home.stateVersion = "26.11";
-
-      programs.home-manager.enable = true;
-    };
+    users.${username}.home.stateVersion = "26.11";
   };
 }

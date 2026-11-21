@@ -76,6 +76,7 @@ in
         onChange = clearRimeCache;
       };
       "fcitx5/rime/rime_ice.custom.yaml" = {
+        # Switch index 3 in rime_ice.schema.yaml is emoji.
         text = ''
           patch:
             "switches/@3/reset": 0

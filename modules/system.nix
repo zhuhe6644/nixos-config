@@ -20,10 +20,7 @@
   # The newest kernel, not the LTS default.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  boot.zswap = {
-    enable = true;
-    compressor = "zstd";
-  };
+  boot.zswap.enable = true;
 
   nixpkgs.config.allowUnfree = true;
 

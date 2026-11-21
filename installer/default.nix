@@ -74,7 +74,6 @@ in
   console = {
     earlySetup = true;
     font = "ter-v32n";
-    packages = [ pkgs.terminus_font ];
   };
 
   environment.systemPackages = [
