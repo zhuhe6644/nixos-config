@@ -75,6 +75,7 @@ in
         optional.files = [ "~/.config/umbriel/noctalia.toml" ];
       };
       general.xwayland_native_resolution = true;
+      appearance.title_bar.mode = "negotiated";
       hot_corners.top_left.delay_ms = 150;
       output.DP-3 = {
         mode = "${toString display.width}x${toString display.height}@${builtins.toJSON display.refresh_rate}";

@@ -20,7 +20,7 @@
     ../../modules/system.nix
     ../../modules/users.nix
     ../../modules/vscode.nix
-    ../../modules/waydroid
+    ../../modules/waydroid.nix
   ];
 
   networking.hostName = "workstation";
