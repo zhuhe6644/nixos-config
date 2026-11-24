@@ -1,0 +1,69 @@
+{
+  "current_active_mode": "6cc24500-c65c-4f16-9bfc-88277fe34588",
+  "modes": [
+    {
+      "all_device_settings": {
+        "034c2fb184a101865710c8258650caaaeade161075207cedb2f14e4168d8e6d2": {},
+        "7bfee7e15e0af819a1c74ac2f088d69197bdae5f361d2af4da2960c931be3cc7": {
+          "fan1": {
+            "channel_name": "fan1",
+            "profile_uid": "27c1d7a6-87c0-4dd1-acaa-08fd098b8e35"
+          },
+          "fan2": {
+            "channel_name": "fan2",
+            "profile_uid": "1b48eacc-7769-44d4-9907-c98759606b79"
+          },
+          "fan3": {
+            "channel_name": "fan3",
+            "profile_uid": "9c983a0e-46c9-4b50-8919-b1b6c989393f"
+          },
+          "fan5": {
+            "channel_name": "fan5",
+            "profile_uid": "ae5a39a6-a88a-495d-aa2f-a52219377c2e"
+          }
+        }
+      },
+      "name": "Balanced",
+      "uid": "6cc24500-c65c-4f16-9bfc-88277fe34588"
+    },
+    {
+      "all_device_settings": {
+        "034c2fb184a101865710c8258650caaaeade161075207cedb2f14e4168d8e6d2": {
+          "fan1": {
+            "channel_name": "fan1",
+            "profile_uid": "c9ac4ebd-b4ca-423c-b886-637188c0506f"
+          },
+          "fan2": {
+            "channel_name": "fan2",
+            "profile_uid": "c9ac4ebd-b4ca-423c-b886-637188c0506f"
+          }
+        },
+        "7bfee7e15e0af819a1c74ac2f088d69197bdae5f361d2af4da2960c931be3cc7": {
+          "fan1": {
+            "channel_name": "fan1",
+            "profile_uid": "427213ab-87f6-465c-979a-b10e90c5200d"
+          },
+          "fan2": {
+            "channel_name": "fan2",
+            "profile_uid": "0afca56a-b12e-4b38-851f-85ad3116f280"
+          },
+          "fan3": {
+            "channel_name": "fan3",
+            "profile_uid": "b25182c7-d2b3-48dc-bca8-dea937cc878b"
+          },
+          "fan5": {
+            "channel_name": "fan5",
+            "profile_uid": "b0e732fa-8f1e-4a39-a8ec-a3cdd4d80435"
+          }
+        }
+      },
+      "name": "Performance",
+      "uid": "464bbbb3-588c-4812-96ed-334cf3c8ce2c"
+    }
+  ],
+  "order": [
+    "6cc24500-c65c-4f16-9bfc-88277fe34588",
+    "464bbbb3-588c-4812-96ed-334cf3c8ce2c"
+  ],
+  "previous_active_mode": "464bbbb3-588c-4812-96ed-334cf3c8ce2c"
+}

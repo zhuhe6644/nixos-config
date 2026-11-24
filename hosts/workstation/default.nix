@@ -3,6 +3,7 @@
 {
   imports = [
     ./boot.nix
+    ./coolercontrol
     ./disks.nix
     ./hardware-configuration.nix
     ./tpm.nix
@@ -40,8 +41,6 @@
   boot.extraModprobeConfig = ''
     options nct6687 msi_fan_brute_force=1
   '';
-  # Fan control app.
-  programs.coolercontrol.enable = true;
 
   # The NixOS release this machine was first installed with. Never change it.
   system.stateVersion = "26.11";
